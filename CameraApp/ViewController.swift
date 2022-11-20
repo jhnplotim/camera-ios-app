@@ -10,6 +10,12 @@ import UIKit
 
 class ViewController: UIViewController {
     
+    enum C {
+        static let rotateIconSystemName = "arrow.triangle.2.circlepath.camera"
+        static let boltSystemName = "bolt"
+        static let boltFillSystemName = "bolt.fill"
+    }
+    
     //Capture Session
     var session: AVCaptureSession?
     // Phot Output
@@ -24,6 +30,20 @@ class ViewController: UIViewController {
         button.layer.borderColor = UIColor.white.cgColor
         return button
     }()
+    
+    private let rotateCameraButton: UIButton = {
+        let button = UIButton(frame: CGRect(x: 0, y: 0, width: 30, height: 20))
+        button.setBackgroundImage(UIImage(systemName: C.rotateIconSystemName ), for: .normal)
+        button.tintColor = .white
+        return button
+    }()
+    
+    private let flashButton: UIButton = {
+        let button = UIButton(frame: CGRect(x: 0, y: 0, width: 20, height: 30))
+        button.setBackgroundImage(UIImage(systemName: C.boltSystemName ), for: .normal)
+        button.tintColor = .white
+        return button
+    }()
 }
 
 // Lifecycle
@@ -35,6 +55,8 @@ extension ViewController {
         view.backgroundColor = .black
         view.layer.addSublayer(previewLayer)
         view.addSubview(shutterButton)
+        view.addSubview(rotateCameraButton)
+        view.addSubview(flashButton)
         // Ask for camera permissions
         checkCameraPermissions()
         
@@ -46,6 +68,8 @@ extension ViewController {
         previewLayer.frame = view.bounds
         shutterButton.center = CGPoint(x: view.bounds.width/2,
                                        y: view.bounds.height - 100)
+        rotateCameraButton.center = CGPoint(x: shutterButton.center.x + 100, y: view.bounds.height - 100)
+        flashButton.center = CGPoint(x: shutterButton.center.x - 100, y: view.bounds.height - 100)
     }
     
 }
