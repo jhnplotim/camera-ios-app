@@ -19,9 +19,12 @@ class ViewController: UIViewController {
     //Capture Session
     var session: AVCaptureSession?
     // Phot Output
-    let output = AVCapturePhotoOutput()
+    var output: AVCapturePhotoOutput?
     // Video Previw
     let previewLayer = AVCaptureVideoPreviewLayer()
+    
+    var showBackCamera = true
+    
     // Shutter button
     private let shutterButton: UIButton = {
         let button = UIButton(frame: CGRect(x: 0, y: 0, width: 100, height: 100))
@@ -61,6 +64,8 @@ extension ViewController {
         checkCameraPermissions()
         
         shutterButton.addTarget(self, action: #selector(didTapTakePhoto), for: .touchUpInside)
+        
+        rotateCameraButton.addTarget(self, action: #selector(didRotateCamera), for: .touchUpInside)
     }
     
     override func viewDidLayoutSubviews() {
@@ -104,23 +109,30 @@ extension ViewController {
         }
     }
     
-    private func setupCamera() {
+    private func setupCamera(showBackCamera: Bool = true) {
         let session = AVCaptureSession()
-        if let device = AVCaptureDevice.default(for: .video) {
+        if let device = showBackCamera ? AVCaptureDevice.default(for: .video) : AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) {
             do {
                 let input = try AVCaptureDeviceInput(device: device)
                 if session.canAddInput(input) {
                     session.addInput(input)
+                } else {
+                    print("Could not add input")
                 }
-                
-                if session.canAddOutput(output) {
-                    session.addOutput(output)
+                let _output = AVCapturePhotoOutput()
+                if session.canAddOutput(_output) {
+                    session.addOutput(_output)
+                    self.output = _output
+                } else {
+                    print("Could not add output")
                 }
                 
                 previewLayer.videoGravity = .resizeAspectFill
                 previewLayer.session = session
                 
-                session.startRunning()
+                DispatchQueue.global().async {
+                    session.startRunning()
+                }
                 self.session = session
             } catch {
                 print(error)
@@ -129,7 +141,13 @@ extension ViewController {
     }
     
     @objc private func didTapTakePhoto() {
-        output.capturePhoto(with: AVCapturePhotoSettings(), delegate: self)
+        output?.capturePhoto(with: AVCapturePhotoSettings(), delegate: self)
+    }
+    
+    @objc private func didRotateCamera() {
+        session?.stopRunning()
+        showBackCamera = !showBackCamera
+        setupCamera(showBackCamera: showBackCamera)
     }
 }
 
@@ -145,6 +163,14 @@ extension ViewController: AVCapturePhotoCaptureDelegate {
         imageView.contentMode = .scaleAspectFill
         imageView.frame = view.bounds
         view.addSubview(imageView)
+        
+        // Remove preview of take image and start running after wards
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self, weak imageView] in
+            imageView?.removeFromSuperview()
+            DispatchQueue.global().async {
+                self?.session?.startRunning()
+            }
+        }
     }
 }
 
