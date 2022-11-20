@@ -22,7 +22,7 @@ class ViewController: UIViewController {
     var output: AVCapturePhotoOutput?
     // Video Previw
     let previewLayer = AVCaptureVideoPreviewLayer()
-    
+    // Flag that determines if the front or back camera should be shown
     var showBackCamera = true
     
     // Shutter button
