@@ -18,6 +18,8 @@ class ViewController: UIViewController {
     
     //Capture Session
     var session: AVCaptureSession?
+    //Current Capture Device
+    var currentInputDevice: AVCaptureDevice?
     // Phot Output
     var output: AVCapturePhotoOutput?
     // Video Previw
@@ -66,6 +68,7 @@ extension ViewController {
         shutterButton.addTarget(self, action: #selector(didTapTakePhoto), for: .touchUpInside)
         
         rotateCameraButton.addTarget(self, action: #selector(didRotateCamera), for: .touchUpInside)
+        flashButton.addTarget(self, action: #selector(turnOnFlash), for: .touchUpInside)
     }
     
     override func viewDidLayoutSubviews() {
@@ -134,6 +137,7 @@ extension ViewController {
                     session.startRunning()
                 }
                 self.session = session
+                self.currentInputDevice = device
             } catch {
                 print(error)
             }
@@ -148,6 +152,41 @@ extension ViewController {
         session?.stopRunning()
         showBackCamera = !showBackCamera
         setupCamera(showBackCamera: showBackCamera)
+    }
+    
+    @objc private func turnOnFlash() {
+        print("Turn on flash clicked")
+        guard let session = session, session.isRunning else {
+            print("Session is not running")
+            return
+        }
+        
+        guard let deviceToConfigure = currentInputDevice else {
+            print("No device currently selected")
+            return
+        }
+        
+        
+        guard deviceToConfigure.hasFlash, deviceToConfigure.isTorchAvailable else {
+            print("Device has no flash OR \n It is not available")
+            return
+        }
+        
+        do {
+            try deviceToConfigure.lockForConfiguration()
+            
+            if deviceToConfigure.isTorchActive {
+                deviceToConfigure.torchMode = .off
+                self.flashButton.setBackgroundImage(UIImage(systemName: C.boltSystemName), for: .normal)
+            } else {
+                deviceToConfigure.torchMode = .on
+                self.flashButton.setBackgroundImage(UIImage(systemName: C.boltFillSystemName), for: .normal)
+            }
+            deviceToConfigure.unlockForConfiguration()
+        } catch  {
+            print(error)
+        }
+        
     }
 }
 
