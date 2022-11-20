@@ -177,16 +177,24 @@ extension ViewController {
             
             if deviceToConfigure.isTorchActive {
                 deviceToConfigure.torchMode = .off
-                self.flashButton.setBackgroundImage(UIImage(systemName: C.boltSystemName), for: .normal)
+                toggleFlashButton(isOn: false)
             } else {
                 deviceToConfigure.torchMode = .on
-                self.flashButton.setBackgroundImage(UIImage(systemName: C.boltFillSystemName), for: .normal)
+                toggleFlashButton(isOn: true)
             }
             deviceToConfigure.unlockForConfiguration()
         } catch  {
             print(error)
         }
         
+    }
+    
+    private func toggleFlashButton(isOn: Bool = true) {
+        if isOn {
+            self.flashButton.setBackgroundImage(UIImage(systemName: C.boltFillSystemName), for: .normal)
+        } else {
+            self.flashButton.setBackgroundImage(UIImage(systemName: C.boltSystemName), for: .normal)
+        }
     }
 }
 
@@ -209,6 +217,8 @@ extension ViewController: AVCapturePhotoCaptureDelegate {
             DispatchQueue.global().async {
                 self?.session?.startRunning()
             }
+            
+            self?.toggleFlashButton(isOn: false)
         }
     }
 }
